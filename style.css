@@ -538,6 +538,40 @@ header p {
     align-items: center;
 }
 
+.extra-info-section {
+    margin-top: 24px;
+    padding: 16px;
+    border: 2px dashed #dfe4ff;
+    border-radius: 12px;
+    background: #f8f9ff;
+}
+
+.extra-info-section.hidden-extra {
+    display: none;
+}
+
+.extra-info-section h3 {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: #5360d8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.extra-info-section h3::before {
+    content: "ℹ️";
+}
+
+.extra-info-list {
+    list-style: disc;
+    margin-left: 20px;
+    color: #4b5563;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
 .word-card .examples-section h3::before {
     content: "💡";
     margin-right: 10px;

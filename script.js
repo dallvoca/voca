@@ -1,9 +1,10 @@
 // 데이터 구조
 class Word {
-    constructor(word, meanings, examples) {
+    constructor(word, meanings, examples, extraInfo = []) {
         this.word = word;
         this.meanings = meanings; // String[]
         this.examples = examples; // String[]
+        this.extraInfo = Array.isArray(extraInfo) ? extraInfo : [];
     }
 }
 
@@ -116,6 +117,13 @@ vocabularyData[1] = new Day(2, [
         "The measurements need to be accurate.",
         "Her prediction turned out to be accurate.",
         "We need accurate information before making a decision."
+    ]),
+    new Word("monopoly", ["독점", "전매권"], [
+        "The company gained a monopoly in the local market.",
+        "They were accused of trying to create a monopoly.",
+        "Breaking up the monopoly allowed smaller firms to compete."
+    ], [
+        "have a monopoly on ~에 대한 독점권을 가지다", "have a monopoly on ~에 대한 독점권을 가지다"
     ]),
     new Word("achieve", ["달성하다", "성취하다", "이루다"], [
         "You can achieve anything if you work hard.",
@@ -303,7 +311,12 @@ async function loadVocabularyDataFromFirebase() {
             vocabularyData.length = 0; // 기존 데이터 초기화
             snapshot.forEach(doc => {
                 const data = doc.data();
-                const words = data.words.map(w => new Word(w.word, w.meanings, w.examples));
+                const words = data.words.map(w => new Word(
+                    w.word,
+                    w.meanings,
+                    w.examples,
+                    w.extraInfo || []
+                ));
                 vocabularyData.push(new Day(data.dayNumber, words));
             });
             console.log(`✅ Firebase에서 ${vocabularyData.length}개 Day 데이터 로드 완료`);
@@ -349,7 +362,8 @@ async function saveInitialVocabularyToFirebase() {
                 words: day.words.map(w => ({
                     word: w.word,
                     meanings: w.meanings,
-                    examples: w.examples
+                    examples: w.examples,
+                    extraInfo: w.extraInfo || []
                 }))
             }, { merge: true }); // merge로 기존 데이터 유지하면서 업데이트
         });
@@ -385,7 +399,8 @@ async function saveDay(dayNumber, words) {
             return {
                 word: String(w.word).trim(),
                 meanings: Array.isArray(w.meanings) ? w.meanings.map(m => String(m).trim()) : [],
-                examples: Array.isArray(w.examples) ? w.examples.map(e => String(e).trim()) : []
+                examples: Array.isArray(w.examples) ? w.examples.map(e => String(e).trim()) : [],
+                extraInfo: Array.isArray(w.extraInfo) ? w.extraInfo.map(info => String(info).trim()) : []
             };
         }).filter(w => w !== null);
         
@@ -434,7 +449,8 @@ async function addDay(dayNumber, words) {
             return {
                 word: String(w.word).trim(),
                 meanings: Array.isArray(w.meanings) ? w.meanings.map(m => String(m).trim()) : [],
-                examples: Array.isArray(w.examples) ? w.examples.map(e => String(e).trim()) : []
+                examples: Array.isArray(w.examples) ? w.examples.map(e => String(e).trim()) : [],
+                extraInfo: Array.isArray(w.extraInfo) ? w.extraInfo.map(info => String(info).trim()) : []
             };
         }).filter(w => w !== null);
         
@@ -792,6 +808,8 @@ function showWordCard(day, wordIndex, dayNumber) {
     titleContainer.append(buttonContainer);
     wordCard.append(titleContainer);
     
+    let extraSection = null;
+    
     // 뜻 섹션 (클릭해서 보이기)
     const meaningsSection = $('<div>').addClass('meanings-section').addClass('hidden-meanings');
     const meaningsHeader = $('<h3>').text('뜻 (클릭하여 보기)');
@@ -809,6 +827,9 @@ function showWordCard(day, wordIndex, dayNumber) {
             meaningsList.removeClass('hidden').addClass('visible');
             meaningsHeader.text('뜻');
             meaningsSection.removeClass('hidden-meanings');
+            if (extraSection) {
+                extraSection.removeClass('hidden-extra');
+            }
         }
     });
     
@@ -830,6 +851,18 @@ function showWordCard(day, wordIndex, dayNumber) {
     });
     examplesSection.append(examplesList);
     wordCard.append(examplesSection);
+
+    // 추가 정보 섹션 (있을 때만)
+    if (word.extraInfo && word.extraInfo.length > 0) {
+        extraSection = $('<div>').addClass('extra-info-section hidden-extra');
+        extraSection.append($('<h3>').text('추가 정보'));
+        const extraList = $('<ul>').addClass('extra-info-list');
+        word.extraInfo.forEach(info => {
+            extraList.append($('<li>').text(info));
+        });
+        extraSection.append(extraList);
+        wordCard.append(extraSection);
+    }
     
     $('#word-card-modal').removeClass('hidden');
 }
