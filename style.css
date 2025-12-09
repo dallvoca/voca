@@ -546,8 +546,15 @@ header p {
     background: #f8f9ff;
 }
 
-.extra-info-section.hidden-extra {
+.extra-info-section.collapsed .extra-info-list {
     display: none;
+}
+
+.extra-info-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
 }
 
 .extra-info-section h3 {
@@ -561,6 +568,15 @@ header p {
 
 .extra-info-section h3::before {
     content: "ℹ️";
+}
+
+.extra-info-hint {
+    font-size: 0.9rem;
+    color: #6b7280;
+    background: #e5e7eb;
+    border-radius: 10px;
+    padding: 4px 8px;
+    white-space: nowrap;
 }
 
 .extra-info-list {

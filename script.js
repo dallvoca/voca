@@ -828,7 +828,8 @@ function showWordCard(day, wordIndex, dayNumber) {
             meaningsHeader.text('뜻');
             meaningsSection.removeClass('hidden-meanings');
             if (extraSection) {
-                extraSection.removeClass('hidden-extra');
+                extraSection.removeClass('collapsed');
+                extraSection.find('.extra-info-hint').addClass('hidden');
             }
         }
     });
@@ -854,8 +855,13 @@ function showWordCard(day, wordIndex, dayNumber) {
 
     // 추가 정보 섹션 (있을 때만)
     if (word.extraInfo && word.extraInfo.length > 0) {
-        extraSection = $('<div>').addClass('extra-info-section hidden-extra');
-        extraSection.append($('<h3>').text('추가 정보'));
+        extraSection = $('<div>').addClass('extra-info-section collapsed');
+        extraSection.append(
+            $('<div>').addClass('extra-info-header').append(
+                $('<h3>').text('추가 정보'),
+                $('<span>').addClass('extra-info-hint').text('뜻을 열면 함께 표시됩니다')
+            )
+        );
         const extraList = $('<ul>').addClass('extra-info-list');
         word.extraInfo.forEach(info => {
             extraList.append($('<li>').text(info));
