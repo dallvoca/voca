@@ -1,0 +1,675 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    color: white;
+    margin-bottom: 40px;
+    padding: 30px 20px;
+}
+
+header h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+header p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.header-auth {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: white;
+}
+
+.auth-status {
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.auth-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.auth-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.auth-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.auth-btn.secondary {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.header-tabs {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 25px;
+}
+
+.tab-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.tab-btn.active {
+    background: white;
+    color: #667eea;
+    border-color: white;
+}
+
+.main-content {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    min-height: 500px;
+}
+
+/* Day 목록 스타일 */
+.day-list-container h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: #667eea;
+    text-align: center;
+}
+
+.day-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.day-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 20px;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.day-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.day-btn:active {
+    transform: translateY(-2px);
+}
+
+.day-btn.completed {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.day-btn {
+    position: relative;
+}
+
+.day-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ff4757;
+    color: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+}
+
+/* 단어 리스트 스타일 */
+.word-list-container {
+    animation: fadeIn 0.3s ease;
+}
+
+.word-list-container h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: #667eea;
+    text-align: center;
+}
+
+.back-button-wrapper {
+    margin-bottom: 20px;
+}
+
+.back-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background: #5568d3;
+    transform: translateX(-3px);
+}
+
+.word-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.word-btn {
+    background: white;
+    border: 2px solid #e0e0e0;
+    padding: 20px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #333;
+    text-align: center;
+}
+
+.word-btn:hover {
+    border-color: #667eea;
+    background: #f5f7ff;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.word-btn:active {
+    transform: translateY(0);
+}
+
+.word-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.word-text {
+    flex: 1;
+}
+
+.word-btn.wrong-word {
+    border-color: #ff4757;
+    background: #fff5f5;
+}
+
+.word-btn.wrong-word:hover {
+    border-color: #ff3838;
+    background: #ffe0e0;
+}
+
+.word-wrong-badge {
+    font-size: 1.2rem;
+}
+
+.word-day-label {
+    font-size: 0.85rem;
+    color: #999;
+    background: #f0f0f0;
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+.word-count-badge {
+    background: #ff4757;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 12px;
+    min-width: 40px;
+    text-align: center;
+}
+
+/* 모달 스타일 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    position: relative;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: visible;
+    z-index: 1001;
+    animation: slideUp 0.3s ease;
+    padding: 20px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ff4757;
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1002;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+}
+
+.close-btn:hover {
+    background: #ff3838;
+    transform: rotate(90deg);
+}
+
+/* 단어 카드 스타일 */
+.word-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    max-height: calc(90vh - 40px);
+    overflow-y: auto;
+}
+
+.word-title-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #f0f0f0;
+    gap: 20px;
+}
+
+.word-card-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.word-card .word-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #667eea;
+    text-align: center;
+    flex: 1;
+}
+
+.wrong-btn {
+    background: #f0f0f0;
+    border: 2px solid #ddd;
+    color: #666;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.wrong-btn:hover {
+    background: #ffe0e0;
+    border-color: #ff4757;
+    color: #ff4757;
+}
+
+.wrong-btn.active {
+    background: #ff4757;
+    border-color: #ff4757;
+    color: white;
+}
+
+.wrong-btn.active:hover {
+    background: #ff3838;
+    border-color: #ff3838;
+}
+
+.wrong-count-badge {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 12px;
+    min-width: 24px;
+    text-align: center;
+}
+
+.wrong-btn.active .wrong-count-badge {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.correct-btn {
+    background: #f0f0f0;
+    border: 2px solid #ddd;
+    color: #666;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.correct-btn:hover {
+    background: #e0ffe0;
+    border-color: #38ef7d;
+    color: #11998e;
+}
+
+.word-card .meanings-section {
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+}
+
+.word-card .meanings-section.hidden-meanings {
+    cursor: pointer;
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px dashed #667eea;
+    background: #f9f9ff;
+}
+
+.word-card .meanings-section.hidden-meanings:hover {
+    background: #f0f2ff;
+    border-color: #764ba2;
+}
+
+.word-card .meanings-section h3 {
+    font-size: 1.3rem;
+    color: #764ba2;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.word-card .meanings-section.hidden-meanings h3 {
+    color: #667eea;
+    margin-bottom: 0;
+}
+
+.word-card .meanings-section.hidden-meanings h3::before {
+    content: "🔒";
+    margin-right: 10px;
+}
+
+.word-card .meanings-section:not(.hidden-meanings) h3::before {
+    content: "📖";
+    margin-right: 10px;
+}
+
+.word-card .meanings-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.word-card .meanings-list.hidden {
+    display: none;
+}
+
+.word-card .meanings-list.visible {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.word-card .meanings-list li {
+    background: #f5f7ff;
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.word-card .examples-section {
+    margin-top: 30px;
+}
+
+.word-card .examples-section h3 {
+    font-size: 1.3rem;
+    color: #764ba2;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.word-card .examples-section h3::before {
+    content: "💡";
+    margin-right: 10px;
+}
+
+.word-card .examples-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.word-card .examples-list li {
+    background: #fff5f5;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #ff6b6b;
+    font-size: 1rem;
+    line-height: 1.8;
+    font-style: italic;
+}
+
+.word-card .examples-list li .highlight {
+    color: #667eea;
+    font-weight: bold;
+    font-style: normal;
+}
+
+/* 유틸리티 클래스 */
+.hidden {
+    display: none !important;
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* 복습 리스트 스타일 */
+.review-list-container {
+    animation: fadeIn 0.3s ease;
+}
+
+.review-list-container h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: #667eea;
+    text-align: center;
+}
+
+.no-review-words {
+    text-align: center;
+    padding: 60px 20px;
+    font-size: 1.3rem;
+    color: #999;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .main-content {
+        padding: 20px;
+    }
+
+    .day-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 10px;
+    }
+
+    .day-btn {
+        padding: 15px;
+        font-size: 1rem;
+    }
+
+    .word-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+
+    .word-card {
+        padding: 25px;
+    }
+
+    .word-card .word-title {
+        font-size: 2rem;
+    }
+
+    .word-title-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .word-card-buttons {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .wrong-btn,
+    .correct-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .word-btn {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .word-day-label,
+    .word-count-badge {
+        align-self: flex-end;
+    }
+
+    .header-tabs {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .tab-btn {
+        width: 100%;
+    }
+}
+

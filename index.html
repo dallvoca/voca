@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영어 단어 암기</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 영어 단어 암기</h1>
+            <p>30일 동안 영어 단어를 마스터하세요!</p>
+            <div class="header-auth">
+                <div id="auth-status" class="auth-status">로그인하지 않음 (로컬 모드)</div>
+                <div class="auth-actions">
+                    <button id="login-btn" class="auth-btn">Google 로그인</button>
+                    <button id="logout-btn" class="auth-btn secondary hidden">로그아웃</button>
+                </div>
+            </div>
+            <div class="header-tabs">
+                <button class="tab-btn active" id="tab-study">학습하기</button>
+                <button class="tab-btn" id="tab-review">복습 필요 (<span id="review-count">0</span>)</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Day 목록 영역 -->
+            <div id="day-list-container" class="day-list-container">
+                <h2>Day 선택</h2>
+                <div class="day-grid" id="day-grid">
+                    <!-- Day 버튼들이 동적으로 생성됩니다 -->
+                </div>
+            </div>
+
+            <!-- 단어 리스트 영역 -->
+            <div id="word-list-container" class="word-list-container hidden">
+                <div class="back-button-wrapper">
+                    <button id="back-to-days" class="back-btn">← Day 목록으로</button>
+                </div>
+                <h2 id="current-day-title"></h2>
+                <div class="word-grid" id="word-grid">
+                    <!-- 단어 버튼들이 동적으로 생성됩니다 -->
+                </div>
+            </div>
+
+            <!-- 복습 필요 단어 리스트 영역 -->
+            <div id="review-list-container" class="review-list-container hidden">
+                <h2>복습 필요 단어 목록</h2>
+                <div class="word-grid" id="review-word-grid">
+                    <!-- 복습 필요한 단어들이 동적으로 생성됩니다 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 단어 카드 모달 -->
+        <div id="word-card-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <button class="close-btn" id="close-modal">×</button>
+                <div class="word-card" id="word-card">
+                    <!-- 단어 카드 내용이 동적으로 생성됩니다 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
