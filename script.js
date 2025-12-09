@@ -361,9 +361,137 @@ async function saveInitialVocabularyToFirebase() {
     }
 }
 
+// Day 단어 데이터 덮어씌우기 (기존 데이터 완전히 교체)
+// 사용법: await saveDay(1, [ {word: "...", meanings: [...], examples: [...]}, ... ])
+async function saveDay(dayNumber, words) {
+    if (!db) {
+        console.error('❌ Firestore가 초기화되지 않았습니다.');
+        console.log('💡 먼저 Google로 로그인해주세요.');
+        return;
+    }
+    
+    if (!Array.isArray(words) || words.length === 0) {
+        console.error('❌ words는 비어있지 않은 배열이어야 합니다.');
+        return;
+    }
+    
+    try {
+        // 데이터 정리 및 검증
+        const cleanWords = words.map((w, index) => {
+            if (!w.word) {
+                console.warn(`⚠️ ${index + 1}번째 단어에 word가 없습니다. 건너뜁니다.`);
+                return null;
+            }
+            return {
+                word: String(w.word).trim(),
+                meanings: Array.isArray(w.meanings) ? w.meanings.map(m => String(m).trim()) : [],
+                examples: Array.isArray(w.examples) ? w.examples.map(e => String(e).trim()) : []
+            };
+        }).filter(w => w !== null);
+        
+        if (cleanWords.length === 0) {
+            console.error('❌ 유효한 단어가 없습니다.');
+            return;
+        }
+        
+        const dayRef = db.collection('vocabulary').doc(`day${dayNumber}`);
+        await dayRef.set({
+            dayNumber: dayNumber,
+            words: cleanWords
+        }, { merge: true });
+        
+        console.log(`✅ Day ${dayNumber} 덮어씌우기 완료! (${cleanWords.length}개 단어)`);
+        console.log(`🔄 페이지를 새로고침하면 반영됩니다.`);
+        
+        return { success: true, dayNumber, wordCount: cleanWords.length };
+    } catch (e) {
+        console.error('❌ 저장 실패:', e);
+        return { success: false, error: e };
+    }
+}
+
+// Day 단어 데이터 추가하기 (기존 단어 뒤에 새 단어 추가, 중복 제거)
+// 사용법: await addDay(1, [ {word: "...", meanings: [...], examples: [...]}, ... ])
+async function addDay(dayNumber, words) {
+    if (!db) {
+        console.error('❌ Firestore가 초기화되지 않았습니다.');
+        console.log('💡 먼저 Google로 로그인해주세요.');
+        return;
+    }
+    
+    if (!Array.isArray(words) || words.length === 0) {
+        console.error('❌ words는 비어있지 않은 배열이어야 합니다.');
+        return;
+    }
+    
+    try {
+        // 데이터 정리 및 검증
+        const cleanWords = words.map((w, index) => {
+            if (!w.word) {
+                console.warn(`⚠️ ${index + 1}번째 단어에 word가 없습니다. 건너뜁니다.`);
+                return null;
+            }
+            return {
+                word: String(w.word).trim(),
+                meanings: Array.isArray(w.meanings) ? w.meanings.map(m => String(m).trim()) : [],
+                examples: Array.isArray(w.examples) ? w.examples.map(e => String(e).trim()) : []
+            };
+        }).filter(w => w !== null);
+        
+        if (cleanWords.length === 0) {
+            console.error('❌ 유효한 단어가 없습니다.');
+            return;
+        }
+        
+        const dayRef = db.collection('vocabulary').doc(`day${dayNumber}`);
+        
+        // 기존 데이터 불러오기
+        const existingDoc = await dayRef.get();
+        let existingWords = [];
+        let existingCount = 0;
+        
+        if (existingDoc.exists) {
+            const existingData = existingDoc.data();
+            existingWords = existingData.words || [];
+            existingCount = existingWords.length;
+        }
+        
+        // 중복 제거 (word 기준, 대소문자 무시)
+        const existingWordSet = new Set(existingWords.map(w => w.word.toLowerCase()));
+        const newWordsOnly = cleanWords.filter(w => !existingWordSet.has(w.word.toLowerCase()));
+        
+        if (newWordsOnly.length < cleanWords.length) {
+            const duplicateCount = cleanWords.length - newWordsOnly.length;
+            console.warn(`⚠️ ${duplicateCount}개 단어가 이미 존재합니다. 중복은 추가하지 않습니다.`);
+        }
+        
+        const finalWords = [...existingWords, ...newWordsOnly];
+        
+        await dayRef.set({
+            dayNumber: dayNumber,
+            words: finalWords
+        }, { merge: true });
+        
+        console.log(`✅ Day ${dayNumber} 추가 완료! (총 ${finalWords.length}개 단어)`);
+        if (existingCount > 0) {
+            console.log(`   기존: ${existingCount}개, 새로 추가: ${newWordsOnly.length}개`);
+        } else {
+            console.log(`   새로 추가: ${newWordsOnly.length}개`);
+        }
+        console.log(`🔄 페이지를 새로고침하면 반영됩니다.`);
+        
+        return { success: true, dayNumber, wordCount: finalWords.length, added: newWordsOnly.length };
+    } catch (e) {
+        console.error('❌ 저장 실패:', e);
+        return { success: false, error: e };
+    }
+}
+
 // 전역 함수로 등록 (브라우저 콘솔에서 호출 가능)
 window.saveInitialVocabularyToFirebase = saveInitialVocabularyToFirebase;
 window.loadVocabularyDataFromFirebase = loadVocabularyDataFromFirebase;
+window.saveDay = saveDay;  // Day 덮어씌우기
+window.addDay = addDay;    // Day 단어 추가하기
 
 async function handleAuthChange(user) {
     updateAuthUI(user);
