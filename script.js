@@ -181,7 +181,7 @@ function getWrongCount(dayNumber, wordIndex) {
     return wrongWords[wordId] || 0;
 }
 
-function setWrongCount(dayNumber, wordIndex, count, wordText) {
+async function setWrongCount(dayNumber, wordIndex, count, wordText) {
     const wordId = getWordId(dayNumber, wordIndex);
     const stored = localStorage.getItem('wrongWords');
     let wrongWords = stored ? JSON.parse(stored) : {};
@@ -194,26 +194,30 @@ function setWrongCount(dayNumber, wordIndex, count, wordText) {
 
     localStorage.setItem('wrongWords', JSON.stringify(wrongWords));
 
-    // 서버 동기화
+    // 서버 동기화 (로그인 상태일 때만)
     if (currentUser && db) {
-        saveWrongCountToServer(wordId, {
-            count,
-            dayNumber,
-            wordIndex,
-            word: wordText
-        });
+        try {
+            await saveWrongCountToServer(wordId, {
+                count,
+                dayNumber,
+                wordIndex,
+                word: wordText || ''
+            });
+        } catch (e) {
+            console.error('서버 저장 실패:', e);
+        }
     }
 
     return count;
 }
 
-function incrementWrongCount(dayNumber, wordIndex, wordText) {
+async function incrementWrongCount(dayNumber, wordIndex, wordText) {
     const current = getWrongCount(dayNumber, wordIndex);
-    return setWrongCount(dayNumber, wordIndex, current + 1, wordText);
+    return await setWrongCount(dayNumber, wordIndex, current + 1, wordText);
 }
 
-function resetWrongCount(dayNumber, wordIndex, wordText) {
-    return setWrongCount(dayNumber, wordIndex, 0, wordText);
+async function resetWrongCount(dayNumber, wordIndex, wordText) {
+    return await setWrongCount(dayNumber, wordIndex, 0, wordText);
 }
 
 function getAllWrongWords() {
@@ -261,7 +265,7 @@ function updateReviewCount() {
 }
 
 // Firebase 초기화 및 인증 처리
-function initializeFirebase() {
+async function initializeFirebase() {
     if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
         console.warn("Firebase config가 설정되지 않았습니다. 로컬 모드로 동작합니다.");
         return;
@@ -271,6 +275,9 @@ function initializeFirebase() {
         db = firebase.firestore();
         const auth = firebase.auth();
 
+        // 단어 데이터 로드 (Firebase에서 먼저 시도)
+        await loadVocabularyDataFromFirebase();
+
         auth.onAuthStateChanged(async (user) => {
             currentUser = user;
             await handleAuthChange(user);
@@ -279,6 +286,84 @@ function initializeFirebase() {
         console.error("Firebase 초기화 실패:", e);
     }
 }
+
+// Firebase에서 단어 데이터 로드
+async function loadVocabularyDataFromFirebase() {
+    if (!db) {
+        console.log('Firestore가 초기화되지 않았습니다. 하드코딩 데이터를 사용합니다.');
+        return;
+    }
+    
+    try {
+        const vocabRef = db.collection('vocabulary');
+        const snapshot = await vocabRef.orderBy('dayNumber').get();
+        
+        if (!snapshot.empty) {
+            // Firebase에 데이터가 있으면 사용
+            vocabularyData.length = 0; // 기존 데이터 초기화
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const words = data.words.map(w => new Word(w.word, w.meanings, w.examples));
+                vocabularyData.push(new Day(data.dayNumber, words));
+            });
+            console.log(`✅ Firebase에서 ${vocabularyData.length}개 Day 데이터 로드 완료`);
+            
+            // UI 업데이트
+            initializeDays();
+            if (currentDayNumber) {
+                showWordList(currentDayNumber);
+            }
+            return true; // Firebase 데이터 사용
+        } else {
+            console.log('⚠️ Firebase에 단어 데이터가 없습니다. 하드코딩 데이터를 사용합니다.');
+            console.log('💡 초기 데이터를 Firebase에 저장하려면 콘솔에서 saveInitialVocabularyToFirebase() 실행');
+            return false; // 하드코딩 데이터 사용
+        }
+    } catch (e) {
+        console.error('❌ 단어 데이터 로드 실패:', e);
+        console.log('하드코딩 데이터를 사용합니다.');
+        return false;
+    }
+}
+
+// Firebase에 초기 단어 데이터 저장 (관리용)
+// 브라우저 콘솔에서 호출: await saveInitialVocabularyToFirebase()
+async function saveInitialVocabularyToFirebase() {
+    if (!db) {
+        console.error('❌ Firestore가 초기화되지 않았습니다.');
+        return;
+    }
+    
+    if (vocabularyData.length === 0) {
+        console.error('❌ 저장할 데이터가 없습니다.');
+        return;
+    }
+    
+    try {
+        console.log('📤 Firebase에 단어 데이터 저장 중...');
+        const batch = db.batch();
+        vocabularyData.forEach(day => {
+            const dayRef = db.collection('vocabulary').doc(`day${day.dayNumber}`);
+            batch.set(dayRef, {
+                dayNumber: day.dayNumber,
+                words: day.words.map(w => ({
+                    word: w.word,
+                    meanings: w.meanings,
+                    examples: w.examples
+                }))
+            }, { merge: true }); // merge로 기존 데이터 유지하면서 업데이트
+        });
+        await batch.commit();
+        console.log(`✅ Firebase에 ${vocabularyData.length}개 Day 데이터 저장 완료!`);
+        console.log('🔄 페이지를 새로고침하면 Firebase에서 데이터를 불러옵니다.');
+    } catch (e) {
+        console.error('❌ 초기 데이터 저장 실패:', e);
+    }
+}
+
+// 전역 함수로 등록 (브라우저 콘솔에서 호출 가능)
+window.saveInitialVocabularyToFirebase = saveInitialVocabularyToFirebase;
+window.loadVocabularyDataFromFirebase = loadVocabularyDataFromFirebase;
 
 async function handleAuthChange(user) {
     updateAuthUI(user);
@@ -390,9 +475,9 @@ async function syncWrongWordsFromServer() {
 }
 
 // 초기화
-$(document).ready(function() {
+$(document).ready(async function() {
     updateReviewCount();
-    initializeFirebase();
+    await initializeFirebase(); // Firebase 초기화 및 데이터 로드 완료 대기
     initializeDays();
     
     // 탭 전환
@@ -559,9 +644,9 @@ function showWordCard(day, wordIndex, dayNumber) {
         wrongBtn.append(countBadge);
     }
     
-    wrongBtn.on('click', function(e) {
+    wrongBtn.on('click', async function(e) {
         e.stopPropagation();
-        const newCount = incrementWrongCount(dayNumber, wordIndex, word.word);
+        const newCount = await incrementWrongCount(dayNumber, wordIndex, word.word);
         updateWordCardButtons(wrongBtn, correctBtn, newCount, dayNumber, wordIndex);
         updateReviewCount();
         
@@ -582,9 +667,9 @@ function showWordCard(day, wordIndex, dayNumber) {
         .html('✅')
         .css('display', wrongCount > 0 ? 'flex' : 'none');
     
-    correctBtn.on('click', function(e) {
+    correctBtn.on('click', async function(e) {
         e.stopPropagation();
-        const newCount = resetWrongCount(dayNumber, wordIndex, word.word);
+        const newCount = await resetWrongCount(dayNumber, wordIndex, word.word);
         updateWordCardButtons(wrongBtn, correctBtn, newCount, dayNumber, wordIndex);
         updateReviewCount();
         
