@@ -759,23 +759,23 @@ function showWordCard(day, wordIndex, dayNumber) {
     // 버튼 컨테이너
     const buttonContainer = $('<div>').addClass('word-card-buttons');
     
-    // 틀렸어요 버튼
+    // 틀렸어요/초기화 토글 버튼
     const wrongBtn = $('<button>')
         .addClass('wrong-btn')
         .html('❌');
     
     if (wrongCount > 0) {
         wrongBtn.addClass('active');
-        const countBadge = $('<span>')
-            .addClass('wrong-count-badge')
-            .text(wrongCount);
-        wrongBtn.append(countBadge);
     }
     
     wrongBtn.on('click', async function(e) {
         e.stopPropagation();
-        const newCount = await incrementWrongCount(dayNumber, wordIndex, word.word);
-        updateWordCardButtons(wrongBtn, correctBtn, newCount, dayNumber, wordIndex);
+        const isMarkedWrong = wrongBtn.hasClass('active');
+        const newCount = isMarkedWrong
+            ? await resetWrongCount(dayNumber, wordIndex, word.word)
+            : await incrementWrongCount(dayNumber, wordIndex, word.word);
+        
+        updateWordCardButton(wrongBtn, newCount);
         updateReviewCount();
         
         // 현재 화면이 단어 리스트면 업데이트
@@ -788,32 +788,7 @@ function showWordCard(day, wordIndex, dayNumber) {
             initializeDays();
         }
     });
-    
-    // 맞았어요 버튼 (틀린 횟수 초기화)
-    const correctBtn = $('<button>')
-        .addClass('correct-btn')
-        .html('✅')
-        .css('display', wrongCount > 0 ? 'flex' : 'none');
-    
-    correctBtn.on('click', async function(e) {
-        e.stopPropagation();
-        const newCount = await resetWrongCount(dayNumber, wordIndex, word.word);
-        updateWordCardButtons(wrongBtn, correctBtn, newCount, dayNumber, wordIndex);
-        updateReviewCount();
-        
-        // 현재 화면이 단어 리스트면 업데이트
-        if (!$('#word-list-container').hasClass('hidden') && currentDayNumber === dayNumber) {
-            showWordList(dayNumber);
-        }
-        
-        // Day 목록 업데이트
-        if (!$('#day-list-container').hasClass('hidden')) {
-            initializeDays();
-        }
-    });
-    
     buttonContainer.append(wrongBtn);
-    buttonContainer.append(correctBtn);
     titleContainer.append(buttonContainer);
     wordCard.append(titleContainer);
     
@@ -859,20 +834,14 @@ function showWordCard(day, wordIndex, dayNumber) {
     $('#word-card-modal').removeClass('hidden');
 }
 
-function updateWordCardButtons(wrongBtn, correctBtn, count, dayNumber, wordIndex) {
+function updateWordCardButton(wrongBtn, count) {
     // 틀렸어요 버튼 업데이트
     wrongBtn.empty();
     wrongBtn.html('❌');
     if (count > 0) {
         wrongBtn.addClass('active');
-        const countBadge = $('<span>')
-            .addClass('wrong-count-badge')
-            .text(count);
-        wrongBtn.append(countBadge);
-        correctBtn.css('display', 'flex');
     } else {
         wrongBtn.removeClass('active');
-        correctBtn.css('display', 'none');
     }
 }
 
@@ -911,11 +880,6 @@ function showReviewList() {
             .addClass('word-day-label')
             .text(`Day ${dayNumber}`);
         wordBtn.append(dayLabel);
-        
-        const countBadge = $('<span>')
-            .addClass('word-count-badge')
-            .text(`${count}회`);
-        wordBtn.append(countBadge);
         
         reviewGrid.append(wordBtn);
     });
