@@ -38,10 +38,12 @@ header p {
 .header-auth {
     margin-top: 15px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 8px;
+    justify-content: right;
+    gap: 12px;
     color: white;
+    padding-bottom: 30px;
 }
 
 .auth-status {
@@ -256,6 +258,7 @@ header p {
 .word-btn.wrong-word {
     border-color: #ff4757;
     background: #fff5f5;
+    flex-direction: row;
 }
 
 .word-btn.wrong-word:hover {
@@ -264,7 +267,7 @@ header p {
 }
 
 .word-wrong-badge {
-    font-size: 1.2rem;
+    font-size: 0.9rem;
 }
 
 .word-day-label {
@@ -372,7 +375,7 @@ header p {
     display: flex;
     gap: 10px;
     align-items: center;
-    flex-wrap: wrap;
+    /* flex-wrap: wrap; */
 }
 
 .word-card .word-title {
@@ -637,13 +640,13 @@ header p {
     }
 
     .word-title-container {
-        flex-direction: column;
+        flex-direction: row;
         align-items: stretch;
     }
 
     .word-card-buttons {
         width: 100%;
-        flex-direction: column;
+        flex-direction: row;
     }
 
     .wrong-btn,
@@ -654,7 +657,6 @@ header p {
 
     .word-btn {
         flex-direction: column;
-        align-items: flex-start;
         gap: 8px;
     }
 

@@ -862,7 +862,7 @@ function showWordCard(day, wordIndex, dayNumber) {
 function updateWordCardButtons(wrongBtn, correctBtn, count, dayNumber, wordIndex) {
     // 틀렸어요 버튼 업데이트
     wrongBtn.empty();
-    wrongBtn.html('❌ 틀렸어요');
+    wrongBtn.html('❌');
     if (count > 0) {
         wrongBtn.addClass('active');
         const countBadge = $('<span>')
