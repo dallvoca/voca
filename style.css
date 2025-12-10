@@ -559,7 +559,6 @@ header p {
 }
 
 .extra-info-section h3 {
-    margin-bottom: 10px;
     font-size: 1.1rem;
     color: #5360d8;
     display: flex;
@@ -568,7 +567,7 @@ header p {
 }
 
 .extra-info-section h3::before {
-    content: "ℹ️";
+    content: "📖";
 }
 
 .extra-info-hint {
@@ -692,6 +691,16 @@ header p {
 
     .word-card .word-title {
         font-size: 2rem;
+    }
+
+    .extra-info-section h3 {
+        font-size: 1rem;
+        gap: 6px;
+    }
+
+    .extra-info-hint {
+        font-size: 0.8rem;
+        padding: 2px 6px;
     }
 
     .word-title-container {
