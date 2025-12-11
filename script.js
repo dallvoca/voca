@@ -740,7 +740,6 @@ function showWordList(dayNumber) {
             wordBtn.addClass('wrong-word');
             const wrongBadge = $('<span>')
                 .addClass('word-wrong-badge')
-                .html('❌');
             wordBtn.append(wrongBadge);
         }
         
