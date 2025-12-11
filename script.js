@@ -869,6 +869,7 @@ function showWordCard(day, wordIndex, dayNumber) {
         wordCard.append(extraSection);
     }
     
+    $('body').addClass('no-scroll');
     $('#word-card-modal').removeClass('hidden');
 }
 
@@ -886,6 +887,7 @@ function updateWordCardButton(wrongBtn, count) {
 // 단어 카드 닫기
 function closeWordCard() {
     $('#word-card-modal').addClass('hidden');
+    $('body').removeClass('no-scroll');
     currentWord = null;
     currentWordIndex = null;
 }
