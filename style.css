@@ -253,7 +253,6 @@ header p {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
 }
 
 .word-text {
@@ -263,7 +262,7 @@ header p {
 .word-btn.wrong-word {
     border-color: #ff4757;
     background: #fff5f5;
-    flex-direction: row;
+    position: relative;
 }
 
 .word-btn.wrong-word:hover {
@@ -276,11 +275,14 @@ header p {
 }
 
 .word-day-label {
-    font-size: 0.85rem;
+    font-size: 0.6rem;
     color: #999;
     background: #f0f0f0;
     padding: 4px 10px;
     border-radius: 12px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
 }
 
 .word-count-badge {
@@ -728,11 +730,6 @@ header p {
         padding: 8px 0px;
         justify-content: center;
         flex-shrink: 0;
-    }
-
-    .word-btn {
-        flex-direction: column;
-        gap: 8px;
     }
 
     .word-day-label,
