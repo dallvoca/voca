@@ -761,7 +761,32 @@ function initializeDays() {
     const dayGrid = $('#day-grid');
     dayGrid.empty();
     
-    vocabularyData.forEach(day => {
+    // Day 정렬: "Day 1", "Day 2" 같은 숫자 형식은 숫자 순서로, 나머지는 알파벳/한글 순서로
+    const sortedDays = [...vocabularyData].sort((a, b) => {
+        const dayNamePattern = /^Day\s+(\d+)$/i;
+        const aMatch = a.dayName.match(dayNamePattern);
+        const bMatch = b.dayName.match(dayNamePattern);
+        
+        // 둘 다 "Day 숫자" 형식인 경우
+        if (aMatch && bMatch) {
+            return parseInt(aMatch[1]) - parseInt(bMatch[1]);
+        }
+        
+        // a만 "Day 숫자" 형식인 경우 - a를 앞으로
+        if (aMatch && !bMatch) {
+            return -1;
+        }
+        
+        // b만 "Day 숫자" 형식인 경우 - b를 앞으로
+        if (!aMatch && bMatch) {
+            return 1;
+        }
+        
+        // 둘 다 일반 이름인 경우 - 알파벳/한글 순서로 정렬
+        return a.dayName.localeCompare(b.dayName, 'ko', { numeric: true, sensitivity: 'base' });
+    });
+    
+    sortedDays.forEach(day => {
         const wrongCount = getDayWrongCount(day.dayNumber);
         const dayBtn = $('<button>')
             .addClass('day-btn')
