@@ -699,19 +699,21 @@ $(document).ready(async function() {
     await initializeFirebase(); // Firebase 초기화 및 데이터 로드 완료 대기
     initializeDays();
     
+    // 초기 상태 기록
+    if (!history.state) {
+        history.replaceState({ view: 'days' }, '', '#days');
+    }
+    
     // 탭 전환
     $('#tab-study').on('click', function() {
         $(this).addClass('active');
         $('#tab-review').removeClass('active');
-        $('#review-list-container').addClass('hidden');
-        $('#day-list-container').removeClass('hidden');
+        showDayList();
     });
     
     $('#tab-review').on('click', function() {
         $(this).addClass('active');
         $('#tab-study').removeClass('active');
-        $('#day-list-container').addClass('hidden');
-        $('#word-list-container').addClass('hidden');
         showReviewList();
     });
     
@@ -753,6 +755,30 @@ $(document).ready(async function() {
         if (e.key === 'Escape') {
             closeWordCard();
         }
+    });
+    
+    // 브라우저 뒤로가기/앞으로가기 처리
+    window.addEventListener('popstate', (event) => {
+        const state = event.state || { view: 'days' };
+        
+        if (state.view === 'words' && state.dayNumber) {
+            $('#tab-study').addClass('active');
+            $('#tab-review').removeClass('active');
+            showWordList(state.dayNumber, { skipHistory: true });
+            return;
+        }
+        
+        if (state.view === 'review') {
+            $('#tab-review').addClass('active');
+            $('#tab-study').removeClass('active');
+            showReviewList({ skipHistory: true });
+            return;
+        }
+        
+        // 기본: Day 목록
+        $('#tab-study').addClass('active');
+        $('#tab-review').removeClass('active');
+        showDayList({ skipHistory: true });
     });
 });
 
@@ -807,17 +833,21 @@ function initializeDays() {
 }
 
 // Day 목록 보기
-function showDayList() {
+function showDayList(options = {}) {
     $('#day-list-container').removeClass('hidden');
     $('#word-list-container').addClass('hidden');
     $('#review-list-container').addClass('hidden');
     currentDay = null;
     currentDayNumber = null;
     initializeDays(); // 배지 업데이트
+    
+    if (!options.skipHistory) {
+        history.pushState({ view: 'days' }, '', '#days');
+    }
 }
 
 // 단어 리스트 보기
-function showWordList(dayNumber) {
+function showWordList(dayNumber, options = {}) {
     currentDay = vocabularyData.find(d => d.dayNumber === dayNumber);
     currentDayNumber = dayNumber;
     if (!currentDay) return;
@@ -850,6 +880,10 @@ function showWordList(dayNumber) {
     $('#day-list-container').addClass('hidden');
     $('#word-list-container').removeClass('hidden');
     $('#review-list-container').addClass('hidden');
+    
+    if (!options.skipHistory) {
+        history.pushState({ view: 'words', dayNumber }, '', `#${day.dayName}`);
+    }
 }
 
 // 단어 카드 보기
@@ -894,9 +928,9 @@ function showWordCard(day, wordIndex, dayNumber) {
         updateWordCardButton(wrongBtn, newCount);
         updateReviewCount();
         
-        // 현재 화면이 단어 리스트면 업데이트
+        // 현재 화면이 단어 리스트면 업데이트 (히스토리 추가 없이)
         if (!$('#word-list-container').hasClass('hidden') && currentDayNumber === dayNumber) {
-            showWordList(dayNumber);
+            showWordList(dayNumber, { skipHistory: true });
         }
         
         // Day 목록 업데이트
@@ -994,7 +1028,7 @@ function closeWordCard() {
 }
 
 // 복습 필요 단어 리스트 보기
-function showReviewList() {
+function showReviewList(options = {}) {
     const wrongWords = getAllWrongWords();
     const reviewGrid = $('#review-word-grid');
     reviewGrid.empty();
@@ -1004,6 +1038,12 @@ function showReviewList() {
             .addClass('no-review-words')
             .text('복습이 필요한 단어가 없습니다! 🎉'));
         $('#review-list-container').removeClass('hidden');
+        $('#day-list-container').addClass('hidden');
+        $('#word-list-container').addClass('hidden');
+        
+        if (!options.skipHistory) {
+            history.pushState({ view: 'review' }, '', '#review');
+        }
         return;
     }
     
@@ -1027,5 +1067,11 @@ function showReviewList() {
     });
     
     $('#review-list-container').removeClass('hidden');
+    $('#day-list-container').addClass('hidden');
+    $('#word-list-container').addClass('hidden');
+    
+    if (!options.skipHistory) {
+        history.pushState({ view: 'review' }, '', '#review');
+    }
 }
 
