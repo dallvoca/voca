@@ -9,9 +9,10 @@ class Word {
 }
 
 class Day {
-    constructor(dayNumber, words) {
+    constructor(dayNumber, words, dayName = null) {
         this.dayNumber = dayNumber;
         this.words = words; // Word[]
+        this.dayName = dayName || `Day ${dayNumber}`; // 사용자 지정 이름, 없으면 기본값
     }
 }
 
@@ -257,7 +258,10 @@ function getDayWrongCount(dayNumber) {
     const wrongWords = JSON.parse(stored);
     let count = 0;
     
-    vocabularyData[dayNumber - 1].words.forEach((word, wordIndex) => {
+    const day = vocabularyData.find(d => d.dayNumber === dayNumber);
+    if (!day || !Array.isArray(day.words)) return 0;
+    
+    day.words.forEach((word, wordIndex) => {
         const wordId = getWordId(dayNumber, wordIndex);
         if (wrongWords[wordId] && wrongWords[wordId] > 0) {
             count++;
@@ -317,7 +321,7 @@ async function loadVocabularyDataFromFirebase() {
                     w.examples,
                     w.extraInfo || []
                 ));
-                vocabularyData.push(new Day(data.dayNumber, words));
+                vocabularyData.push(new Day(data.dayNumber, words, data.dayName));
             });
             console.log(`✅ Firebase에서 ${vocabularyData.length}개 Day 데이터 로드 완료`);
             
@@ -359,6 +363,7 @@ async function saveInitialVocabularyToFirebase() {
             const dayRef = db.collection('vocabulary').doc(`day${day.dayNumber}`);
             batch.set(dayRef, {
                 dayNumber: day.dayNumber,
+                dayName: day.dayName,
                 words: day.words.map(w => ({
                     word: w.word,
                     meanings: w.meanings,
@@ -376,11 +381,16 @@ async function saveInitialVocabularyToFirebase() {
 }
 
 // Day 단어 데이터 덮어씌우기 (기존 데이터 완전히 교체)
-// 사용법: await saveDay(1, [ {word: "...", meanings: [...], examples: [...]}, ... ])
-async function saveDay(dayNumber, words) {
+// 사용법: await saveDay("기초 단어", [ {word: "...", meanings: [...], examples: [...]}, ... ])
+async function saveDay(dayName, words) {
     if (!db) {
         console.error('❌ Firestore가 초기화되지 않았습니다.');
         console.log('💡 먼저 Google로 로그인해주세요.');
+        return;
+    }
+    
+    if (!dayName || typeof dayName !== 'string' || dayName.trim() === '') {
+        console.error('❌ dayName은 비어있지 않은 문자열이어야 합니다.');
         return;
     }
     
@@ -409,16 +419,47 @@ async function saveDay(dayNumber, words) {
             return;
         }
         
-        const dayRef = db.collection('vocabulary').doc(`day${dayNumber}`);
+        const trimmedDayName = dayName.trim();
+        
+        // 기존 Day 찾기 (dayName으로)
+        const existingDay = vocabularyData.find(d => d.dayName === trimmedDayName);
+        let dayNumber;
+        
+        if (existingDay) {
+            // 기존 Day가 있으면 dayNumber 유지
+            dayNumber = existingDay.dayNumber;
+        } else {
+            // 새 Day면 dayNumber 자동 할당 (기존 최대값 + 1)
+            const maxDayNumber = vocabularyData.length > 0 
+                ? Math.max(...vocabularyData.map(d => d.dayNumber))
+                : 0;
+            dayNumber = maxDayNumber + 1;
+            
+            // vocabularyData에 새 Day 추가
+            const newDay = new Day(dayNumber, [], trimmedDayName);
+            vocabularyData.push(newDay);
+        }
+        
+        // Firebase doc ID 생성 (dayName 기반, 특수문자 제거)
+        const docId = trimmedDayName.replace(/[^a-zA-Z0-9가-힣]/g, '_').toLowerCase();
+        
+        const dayRef = db.collection('vocabulary').doc(docId);
         await dayRef.set({
             dayNumber: dayNumber,
+            dayName: trimmedDayName,
             words: cleanWords
         }, { merge: true });
         
-        console.log(`✅ Day ${dayNumber} 덮어씌우기 완료! (${cleanWords.length}개 단어)`);
+        // vocabularyData 업데이트
+        const day = vocabularyData.find(d => d.dayNumber === dayNumber);
+        if (day) {
+            day.words = cleanWords.map(w => new Word(w.word, w.meanings, w.examples, w.extraInfo));
+        }
+        
+        console.log(`✅ "${trimmedDayName}" 덮어씌우기 완료! (${cleanWords.length}개 단어)`);
         console.log(`🔄 페이지를 새로고침하면 반영됩니다.`);
         
-        return { success: true, dayNumber, wordCount: cleanWords.length };
+        return { success: true, dayName: trimmedDayName, dayNumber, wordCount: cleanWords.length };
     } catch (e) {
         console.error('❌ 저장 실패:', e);
         return { success: false, error: e };
@@ -426,11 +467,16 @@ async function saveDay(dayNumber, words) {
 }
 
 // Day 단어 데이터 추가하기 (기존 단어 뒤에 새 단어 추가, 중복 제거)
-// 사용법: await addDay(1, [ {word: "...", meanings: [...], examples: [...]}, ... ])
-async function addDay(dayNumber, words) {
+// 사용법: await addDay("기초 단어", [ {word: "...", meanings: [...], examples: [...]}, ... ])
+async function addDay(dayName, words) {
     if (!db) {
         console.error('❌ Firestore가 초기화되지 않았습니다.');
         console.log('💡 먼저 Google로 로그인해주세요.');
+        return;
+    }
+    
+    if (!dayName || typeof dayName !== 'string' || dayName.trim() === '') {
+        console.error('❌ dayName은 비어있지 않은 문자열이어야 합니다.');
         return;
     }
     
@@ -459,7 +505,15 @@ async function addDay(dayNumber, words) {
             return;
         }
         
-        const dayRef = db.collection('vocabulary').doc(`day${dayNumber}`);
+        const trimmedDayName = dayName.trim();
+        
+        // 기존 Day 찾기 (dayName으로)
+        const existingDay = vocabularyData.find(d => d.dayName === trimmedDayName);
+        let dayNumber;
+        
+        // Firebase doc ID 생성 (dayName 기반, 특수문자 제거)
+        const docId = trimmedDayName.replace(/[^a-zA-Z0-9가-힣]/g, '_').toLowerCase();
+        const dayRef = db.collection('vocabulary').doc(docId);
         
         // 기존 데이터 불러오기
         const existingDoc = await dayRef.get();
@@ -470,6 +524,20 @@ async function addDay(dayNumber, words) {
             const existingData = existingDoc.data();
             existingWords = existingData.words || [];
             existingCount = existingWords.length;
+            dayNumber = existingData.dayNumber;
+        } else if (existingDay) {
+            // vocabularyData에는 있지만 Firebase에는 없는 경우
+            dayNumber = existingDay.dayNumber;
+        } else {
+            // 새 Day면 dayNumber 자동 할당 (기존 최대값 + 1)
+            const maxDayNumber = vocabularyData.length > 0 
+                ? Math.max(...vocabularyData.map(d => d.dayNumber))
+                : 0;
+            dayNumber = maxDayNumber + 1;
+            
+            // vocabularyData에 새 Day 추가
+            const newDay = new Day(dayNumber, [], trimmedDayName);
+            vocabularyData.push(newDay);
         }
         
         // 중복 제거 (word 기준, 대소문자 무시)
@@ -485,10 +553,17 @@ async function addDay(dayNumber, words) {
         
         await dayRef.set({
             dayNumber: dayNumber,
+            dayName: trimmedDayName,
             words: finalWords
         }, { merge: true });
         
-        console.log(`✅ Day ${dayNumber} 추가 완료! (총 ${finalWords.length}개 단어)`);
+        // vocabularyData 업데이트
+        const day = vocabularyData.find(d => d.dayNumber === dayNumber);
+        if (day) {
+            day.words = finalWords.map(w => new Word(w.word, w.meanings, w.examples, w.extraInfo));
+        }
+        
+        console.log(`✅ "${trimmedDayName}" 추가 완료! (총 ${finalWords.length}개 단어)`);
         if (existingCount > 0) {
             console.log(`   기존: ${existingCount}개, 새로 추가: ${newWordsOnly.length}개`);
         } else {
@@ -496,7 +571,7 @@ async function addDay(dayNumber, words) {
         }
         console.log(`🔄 페이지를 새로고침하면 반영됩니다.`);
         
-        return { success: true, dayNumber, wordCount: finalWords.length, added: newWordsOnly.length };
+        return { success: true, dayName: trimmedDayName, dayNumber, wordCount: finalWords.length, added: newWordsOnly.length };
     } catch (e) {
         console.error('❌ 저장 실패:', e);
         return { success: false, error: e };
@@ -692,7 +767,7 @@ function initializeDays() {
             .addClass('day-btn')
             .data('day', day.dayNumber);
         
-        const dayText = $('<span>').text(`Day ${day.dayNumber}`);
+        const dayText = $('<span>').addClass('day-name-text').text(day.dayName);
         dayBtn.append(dayText);
         
         if (wrongCount > 0) {
@@ -722,7 +797,8 @@ function showWordList(dayNumber) {
     currentDayNumber = dayNumber;
     if (!currentDay) return;
     
-    $('#current-day-title').text(`Day ${dayNumber} - 단어 목록`);
+    const day = vocabularyData.find(d => d.dayNumber === dayNumber);
+    $('#current-day-title').text(`${day ? day.dayName : `Day ${dayNumber}`} - 단어 목록`);
     const wordGrid = $('#word-grid');
     wordGrid.empty();
     
@@ -916,9 +992,10 @@ function showReviewList() {
         const wordText = $('<span>').addClass('word-text').text(word.word);
         wordBtn.append(wordText);
         
+        const day = vocabularyData.find(d => d.dayNumber === dayNumber);
         const dayLabel = $('<span>')
             .addClass('word-day-label')
-            .text(`Day ${dayNumber}`);
+            .text(day ? day.dayName : `Day ${dayNumber}`);
         wordBtn.append(dayLabel);
         
         reviewGrid.append(wordBtn);
