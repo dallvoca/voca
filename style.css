@@ -566,12 +566,16 @@ header p {
     justify-content: space-between;
 }
 
+.extra-info-section.collapsed h3 {
+    padding-bottom: 0px;
+}
+
 .extra-info-section h3 {
+    padding-bottom: 8px;
     font-size: 1.1rem;
     color: #5360d8;
     display: flex;
     align-items: center;
-    gap: 6px;
 }
 
 .extra-info-section h3::before {
